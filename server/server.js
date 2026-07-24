@@ -21,16 +21,21 @@ app.use(express.json());
 let dbPool = null;
 let isDbConnected = false;
 
+const rawServer = process.env.DB_SERVER || 'localhost';
+const serverParts = rawServer.split('\\');
+
 const sqlConfig = {
   user: process.env.DB_USER || 'sa',
-  password: process.env.DB_PASSWORD || 'YourPassword123',
-  server: process.env.DB_SERVER || 'localhost',
+  password: process.env.DB_PASSWORD || '123456',
+  server: serverParts[0],
   database: process.env.DB_NAME || 'MedCareClinic',
   options: {
     encrypt: false,
-    trustServerCertificate: true
+    trustServerCertificate: true,
+    ...(serverParts[1] ? { instanceName: serverParts[1] } : {})
   }
 };
+
 
 async function connectToSqlServer() {
   try {
