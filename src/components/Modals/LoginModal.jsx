@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, Lock, Phone, KeyRound, ShieldAlert, CheckCircle, ArrowRight, Heart } from 'lucide-react';
+import { apiService } from '../../services/api';
 
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState('patient'); // 'patient' | 'admin'
@@ -10,43 +11,88 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const [adminUser, setAdminUser] = useState('admin');
   const [adminPass, setAdminPass] = useState('admin123');
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    setLoading(true);
 
-    if (activeTab === 'patient') {
-      if (!phone || phone.length < 9) {
-        setErrorMsg('Vui lòng nhập số điện thoại hợp lệ');
-        return;
-      }
-      if (isRegister && !name) {
-        setErrorMsg('Vui lòng nhập họ và tên của bạn');
-        return;
-      }
-      onLoginSuccess({
-        id: 'pat-' + Date.now(),
-        name: isRegister ? name : (name || 'Nguyễn Văn Minh'),
-        phone: phone,
-        role: 'patient',
-        email: 'benhnhan@gmail.com'
-      });
-      onClose();
-    } else {
-      // Admin authentication check
-      if (adminUser === 'admin' && adminPass === 'admin123') {
+    try {
+      if (activeTab === 'patient') {
+        if (!phone || phone.length < 9) {
+          setErrorMsg('Vui lòng nhập số điện thoại hợp lệ');
+          setLoading(false);
+          return;
+        }
+
+        if (isRegister) {
+          if (!name) {
+            setErrorMsg('Vui lòng nhập họ và tên của bạn');
+            setLoading(false);
+            return;
+          }
+
+          // Call API backend to save user into SQL [users] table
+          const regRes = await apiService.register({
+            full_name: name,
+            phone: phone,
+            password: password,
+            role: 'patient'
+          });
+
+          if (regRes && regRes.user) {
+            onLoginSuccess(regRes.user);
+            onClose();
+            return;
+          }
+        }
+
+        // Try API login
+        const loginRes = await apiService.login(phone, password);
+        if (loginRes && loginRes.user) {
+          onLoginSuccess(loginRes.user);
+          onClose();
+          return;
+        }
+
+        // Fallback login
         onLoginSuccess({
-          id: 'admin-1',
-          name: 'Quản Trị Viên MedCare',
-          role: 'admin',
-          email: 'admin@medcare.vn'
+          id: 'pat-' + Date.now(),
+          name: isRegister ? name : (name || 'Nguyễn Văn Minh'),
+          phone: phone,
+          role: 'patient',
+          email: 'benhnhan@gmail.com'
         });
         onClose();
+
       } else {
-        setErrorMsg('Tài khoản hoặc mật khẩu Admin không chính xác! (Thử: admin / admin123)');
+        // Admin authentication check
+        const adminRes = await apiService.login(adminUser, adminPass);
+        if (adminRes && adminRes.user) {
+          onLoginSuccess(adminRes.user);
+          onClose();
+          return;
+        }
+
+        if (adminUser === 'admin' && adminPass === 'admin123') {
+          onLoginSuccess({
+            id: 'admin-1',
+            name: 'Quản Trị Viên MedCare',
+            role: 'admin',
+            email: 'admin@medcare.vn'
+          });
+          onClose();
+        } else {
+          setErrorMsg('Tài khoản hoặc mật khẩu Admin không chính xác! (Thử: admin / admin123)');
+        }
       }
+    } catch (err) {
+      setErrorMsg(err.message || 'Lỗi hệ thống đăng nhập');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,9 +192,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <span>{isRegister ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập Bệnh Nhân'}</span>
+                  <span>{loading ? 'Đang xử lý...' : (isRegister ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập Bệnh Nhân')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -201,9 +248,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-sm shadow-md transition flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-sm shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <span>Vào Trang Quản Trị Admin</span>
+                  <span>{loading ? 'Đang xử lý...' : 'Vào Trang Quản Trị Admin'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

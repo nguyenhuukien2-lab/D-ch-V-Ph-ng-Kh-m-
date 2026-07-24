@@ -39,6 +39,22 @@ async function fetchWithFallback(endpoint, options = {}, fallbackData = null) {
 
 export const apiService = {
   // Auth
+  async register(userData) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn('Backend register unavailable, using client fallback');
+    }
+    return null;
+  },
+
   async login(username, password) {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -54,6 +70,7 @@ export const apiService = {
     }
     return null;
   },
+
 
   // Services
   async getServices() {
