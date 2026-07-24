@@ -116,23 +116,34 @@ export default function AdminPage({
           <p className="text-xs text-slate-400 mt-1">Hệ thống quản lý lịch hẹn, đội ngũ bác sĩ & dịch vụ khám MedCare Clinic</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setShowAddDoctorModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm bác sĩ</span>
-          </button>
-          <button 
-            onClick={() => setShowAddServiceModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm dịch vụ</span>
-          </button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="p-3 bg-slate-800 rounded-2xl border border-slate-700 flex items-center gap-3 text-xs">
+            <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+            <div>
+              <span className="text-slate-400 text-[10px] uppercase font-bold block">Trạng thái Database:</span>
+              <span className="text-emerald-400 font-extrabold">🟢 SQL Server Database Live Connected</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowAddDoctorModal(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm bác sĩ</span>
+            </button>
+            <button 
+              onClick={() => setShowAddServiceModal(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm dịch vụ</span>
+            </button>
+          </div>
         </div>
       </div>
+
 
       {/* Overview Metrics Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
